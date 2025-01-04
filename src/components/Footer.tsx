@@ -1,19 +1,17 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useRef } from 'react'
+import Image from 'next/image'
 
 export function Footer() {
-  const [isOpen, setIsOpen] = useState(false)
   const dialogRef = useRef<HTMLDialogElement>(null)
 
   const showDialog = () => {
     dialogRef.current?.showModal()
-    setIsOpen(true)
   }
 
   const closeDialog = () => {
     dialogRef.current?.close()
-    setIsOpen(false)
   }
 
   return (
@@ -66,11 +64,15 @@ export function Footer() {
             扫码添加微信
           </h3>
           
-          <img 
-            src="/rayx-qr.jpg"
-            alt="WeChat QR Code"
-            className="w-64 h-64 object-contain"
-          />
+          <div className="relative w-64 h-64">
+            <Image 
+              src="/rayx-qr.jpg"
+              alt="WeChat QR Code"
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
 
           <button
             onClick={closeDialog}
