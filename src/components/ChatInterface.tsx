@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
-import { useAuth } from '@/contexts/AuthContext'
+import { useState } from 'react'
 import { useChatStore } from '@/lib/store'
 import { Message } from '@/types/chat'
 import ReactMarkdown from 'react-markdown'
@@ -19,16 +18,7 @@ export function ChatInterface() {
   // 加载状态
   const [isLoading, setIsLoading] = useState(false)
   // 从全局状态获取消息列表和添加消息的方法
-  const { messages, addMessage, loadChatHistory, saveChatHistory } = useChatStore()
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const { user } = useAuth()
-
-  // 加载历史记录
-  useEffect(() => {
-    if (user) {
-      loadChatHistory(user.uid)
-    }
-  }, [user])
+  const { messages, addMessage } = useChatStore()
 
   /**
    * 处理消息提交
@@ -36,7 +26,7 @@ export function ChatInterface() {
    */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!input.trim() || isLoading || !user) return
+    if (!input.trim()) return
 
     // 创建并添加用户消息
     const userMessage: Message = {
@@ -78,15 +68,12 @@ export function ChatInterface() {
     } catch (error) {
       console.error('Failed to send message:', error)
     } finally {
-      setIsLoading(false)
+      setIsLoading(false) // 重置加载状态
     }
-
-    // 保存聊天记录
-    await saveChatHistory(user.uid)
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="w-full max-w-4xl mx-auto flex flex-col h-[80vh]">
       {/* 标题 */}
       <div className="text-center py-3 border-b">
         <h1 className="text-2xl font-bold">RayX的AI</h1>
@@ -112,7 +99,9 @@ export function ChatInterface() {
                 className="prose prose-sm max-w-none"
                 rehypePlugins={[rehypeRaw, rehypeSanitize]}
                 components={{
+                  // 移除未使用的 node 参数
                   p: ({ children }) => <p className="my-1">{children}</p>,
+                  // 移除未使用的 node 参数
                   pre: ({ children }) => <pre className="bg-gray-800 text-white p-2 rounded">{children}</pre>,
                 }}
               >
@@ -139,10 +128,15 @@ export function ChatInterface() {
       <form onSubmit={handleSubmit} className="p-3 border-t">
         <div className="flex space-x-3">
           <textarea
-            ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="输入消息... (使用换行键换行，点击发送按钮发送消息)"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                handleSubmit(e)
+              }
+            }}
+            placeholder="输入消息... (按 Shift + Enter 换行)"
             className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px] resize-none"
             disabled={isLoading}
           />
@@ -153,7 +147,7 @@ export function ChatInterface() {
             }`}
             disabled={isLoading}
           >
-            {isLoading ? '发送中...' : '发送'}
+            {isLoading ? 'Sending...' : 'Send'}
           </button>
         </div>
       </form>
