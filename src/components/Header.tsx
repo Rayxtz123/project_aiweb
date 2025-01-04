@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 
 export function Header() {
@@ -11,8 +12,18 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link href="/" className="text-2xl font-bold tracking-tight hover:text-gray-600 transition-colors">
-            RayX
+          <Link href="/" className="flex items-center space-x-2 text-2xl font-bold tracking-tight hover:text-gray-600 transition-colors">
+            <div className="relative w-6 h-6">
+              <Image 
+                src="/favicon.png"
+                alt="RayX Logo"
+                fill
+                sizes="24px"
+                priority
+                className="object-contain"
+              />
+            </div>
+            <span>RayX</span>
           </Link>
 
           {/* Navigation */}
