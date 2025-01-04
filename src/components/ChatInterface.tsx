@@ -95,40 +95,18 @@ export function ChatInterface() {
                   : 'bg-gray-100'
               }`}
             >
-              {message.role === 'assistant' ? (
-                <ReactMarkdown
-                  rehypePlugins={[rehypeRaw, rehypeSanitize]}
-                  className="prose dark:prose-invert max-w-none prose-compact"
-                  components={{
-                    // 自定义段落样式
-                    p: ({node, ...props}) => (
-                      <p className="my-1" {...props} />
-                    ),
-                    // 自定义列表样式
-                    ul: ({node, ...props}) => (
-                      <ul className="my-1 pl-4" {...props} />
-                    ),
-                    ol: ({node, ...props}) => (
-                      <ol className="my-1 pl-4" {...props} />
-                    ),
-                    // 自定义列表项样式
-                    li: ({node, ...props}) => (
-                      <li className="my-0.5" {...props} />
-                    ),
-                    // 自定义标题样式
-                    h1: ({node, ...props}) => (
-                      <h1 className="text-xl font-bold my-2" {...props} />
-                    ),
-                    h2: ({node, ...props}) => (
-                      <h2 className="text-lg font-bold my-2" {...props} />
-                    ),
-                  }}
-                >
-                  {message.content}
-                </ReactMarkdown>
-              ) : (
-                message.content
-              )}
+              <ReactMarkdown
+                className="prose prose-sm max-w-none"
+                rehypePlugins={[rehypeRaw, rehypeSanitize]}
+                components={{
+                  // 移除未使用的 node 参数
+                  p: ({ children }) => <p className="my-1">{children}</p>,
+                  // 移除未使用的 node 参数
+                  pre: ({ children }) => <pre className="bg-gray-800 text-white p-2 rounded">{children}</pre>,
+                }}
+              >
+                {message.content}
+              </ReactMarkdown>
             </div>
           </div>
         ))}

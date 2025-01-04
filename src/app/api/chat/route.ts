@@ -7,7 +7,7 @@ import OpenAI from 'openai'
  * @description 用于调用 Deepseek API
  */
 const client = new OpenAI({
-  apiKey: 'sk-082ec64fe60d486eae5bd55238e88795',
+  apiKey: process.env.DEEPSEEK_API_KEY,
   baseURL: 'https://api.deepseek.com/v1'
 })
 
@@ -33,11 +33,12 @@ export async function POST(request: Request) {
       message: response.choices[0].message.content
     })
     
-  } catch (error: any) {
+  } catch (error: unknown) {
     // 错误处理和日志记录
     console.error('Chat API Error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Failed to process request'
     return NextResponse.json(
-      { error: error.message || 'Failed to process request' },
+      { error: errorMessage },
       { status: 500 }
     )
   }
