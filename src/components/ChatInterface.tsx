@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
 import { useChatStore } from '@/lib/store'
 import { Message } from '@/types/chat'
 import ReactMarkdown from 'react-markdown'
@@ -18,8 +19,16 @@ export function ChatInterface() {
   // 加载状态
   const [isLoading, setIsLoading] = useState(false)
   // 从全局状态获取消息列表和添加消息的方法
-  const { messages, addMessage } = useChatStore()
+  const { messages, addMessage, loadChatHistory, saveChatHistory } = useChatStore()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const { user } = useAuth()
+
+  // 加载历史记录
+  useEffect(() => {
+    if (user) {
+      loadChatHistory(user.uid)
+    }
+  }, [user])
 
   /**
    * 处理消息提交
@@ -27,7 +36,7 @@ export function ChatInterface() {
    */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!input.trim() || isLoading) return
+    if (!input.trim() || isLoading || !user) return
 
     // 创建并添加用户消息
     const userMessage: Message = {
@@ -71,6 +80,9 @@ export function ChatInterface() {
     } finally {
       setIsLoading(false)
     }
+
+    // 保存聊天记录
+    await saveChatHistory(user.uid)
   }
 
   return (
