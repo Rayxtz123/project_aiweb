@@ -25,3 +25,18 @@ npm run dev
 ls node_modules/zustand 
 
 npm install -D @tailwindcss/typography 
+
+mkdir -p public 
+
+# 将你的二维码图片复制到 public 目录并重命名
+cp path/to/your/qrcode.jpg public/wechat-qr.jpg 
+
+# 停止开发服务器
+npm install @headlessui/react
+
+# 清除缓存并重新安装依赖
+rm -rf node_modules .next package-lock.json
+npm install
+
+# 重启开发服务器
+npm run dev 
