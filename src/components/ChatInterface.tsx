@@ -19,12 +19,7 @@ export function ChatInterface() {
   const [isLoading, setIsLoading] = useState(false)
   // 从全局状态获取消息列表和添加消息的方法
   const { messages, addMessage } = useChatStore()
-  const [isComposing, setIsComposing] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-
-  // 添加一个状态来跟踪最后一次按键时间
-  const lastKeyDownTime = useRef(0)
-  const lastKeyUpTime = useRef(0)
 
   /**
    * 处理消息提交
@@ -74,40 +69,7 @@ export function ChatInterface() {
     } catch (error) {
       console.error('Failed to send message:', error)
     } finally {
-      setIsLoading(false) // 重置加载状态
-    }
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    lastKeyDownTime.current = Date.now()
-    
-    // 如果是移动设备的换行键，不做任何处理
-    if (e.key === 'Enter' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-      e.stopPropagation() // 阻止事件冒泡
-      return // 直接返回，不做任何处理
-    }
-
-    // 桌面端的 Shift + Enter 换行处理
-    if (e.key === 'Enter') {
-      if (!e.shiftKey) {
-        e.preventDefault()
-        handleSubmit(e)
-      }
-    }
-  }
-
-  const handleKeyUp = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    lastKeyUpTime.current = Date.now()
-    
-    // 检测是否是移动端的快速按键（通常是输入法的换行键）
-    const isQuickPress = lastKeyUpTime.current - lastKeyDownTime.current < 50
-    
-    // 如果是移动端的快速按键，且内容以换行符结尾，移除换行符
-    if (isQuickPress && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-      const value = textareaRef.current?.value || ''
-      if (value.endsWith('\n')) {
-        setInput(value.slice(0, -1))
-      }
+      setIsLoading(false)
     }
   }
 
@@ -138,9 +100,7 @@ export function ChatInterface() {
                 className="prose prose-sm max-w-none"
                 rehypePlugins={[rehypeRaw, rehypeSanitize]}
                 components={{
-                  // 移除未使用的 node 参数
                   p: ({ children }) => <p className="my-1">{children}</p>,
-                  // 移除未使用的 node 参数
                   pre: ({ children }) => <pre className="bg-gray-800 text-white p-2 rounded">{children}</pre>,
                 }}
               >
@@ -170,9 +130,7 @@ export function ChatInterface() {
             ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onKeyUp={handleKeyUp}
-            placeholder="输入消息... (移动端双击换行键换行，桌面端按 Shift + Enter 换行)"
+            placeholder="输入消息... (使用换行键换行，点击发送按钮发送消息)"
             className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px] resize-none"
             disabled={isLoading}
           />
