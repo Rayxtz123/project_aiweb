@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useChatStore } from '@/lib/store'
 import { Message } from '@/types/chat'
 import ReactMarkdown from 'react-markdown'
@@ -19,8 +19,8 @@ export function ChatInterface() {
   const [isLoading, setIsLoading] = useState(false)
   // 从全局状态获取消息列表和添加消息的方法
   const { messages, addMessage } = useChatStore()
-  // 添加一个状态来跟踪是否正在进行中文输入
   const [isComposing, setIsComposing] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   /**
    * 处理消息提交
@@ -28,7 +28,7 @@ export function ChatInterface() {
    */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!input.trim()) return
+    if (!input.trim() || isLoading) return
 
     // 创建并添加用户消息
     const userMessage: Message = {
@@ -74,8 +74,35 @@ export function ChatInterface() {
     }
   }
 
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // 检查是否是移动设备
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+    
+    // 如果是移动设备且正在输入中文，不处理键盘事件
+    if (isMobile && isComposing) {
+      return
+    }
+
+    // 处理回车键
+    if (e.key === 'Enter') {
+      // 如果按下了 Shift 键，允许换行
+      if (e.shiftKey) {
+        return
+      }
+      
+      // 否则阻止默认行为并提交表单
+      e.preventDefault()
+      handleSubmit(e)
+    }
+  }
+
+  // 处理输入变化
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value)
+  }
+
   return (
-    <div className="w-full max-w-4xl mx-auto flex flex-col h-[80vh]">
+    <div className="flex flex-col h-full">
       {/* 标题 */}
       <div className="text-center py-3 border-b">
         <h1 className="text-2xl font-bold">RayX的AI</h1>
@@ -130,21 +157,23 @@ export function ChatInterface() {
       <form onSubmit={handleSubmit} className="p-3 border-t">
         <div className="flex space-x-3">
           <textarea
+            ref={textareaRef}
             value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              // 如果正在进行中文输入，不处理回车键
-              if (isComposing) return
-
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault()
-                handleSubmit(e)
+            onChange={handleInputChange}
+            onKeyDown={handleKeyPress}
+            onCompositionStart={() => setIsComposing(true)}
+            onCompositionEnd={() => {
+              setIsComposing(false)
+              // 在 iOS 设备上，需要额外处理输入法的换行键
+              if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                const value = textareaRef.current?.value || ''
+                if (value.endsWith('\n')) {
+                  setInput(value.slice(0, -1))
+                  handleSubmit(new Event('submit') as any)
+                }
               }
             }}
-            // 添加中文输入法事件处理
-            onCompositionStart={() => setIsComposing(true)}
-            onCompositionEnd={() => setIsComposing(false)}
-            placeholder="输入消息... (按 Shift + Enter 或 Return 换行)"
+            placeholder="输入消息... (按住 Shift 键的同时按回车键换行)"
             className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px] resize-none"
             disabled={isLoading}
           />
