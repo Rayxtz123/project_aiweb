@@ -19,6 +19,8 @@ export function ChatInterface() {
   const [isLoading, setIsLoading] = useState(false)
   // 从全局状态获取消息列表和添加消息的方法
   const { messages, addMessage } = useChatStore()
+  // 添加一个状态来跟踪是否正在进行中文输入
+  const [isComposing, setIsComposing] = useState(false)
 
   /**
    * 处理消息提交
@@ -131,12 +133,18 @@ export function ChatInterface() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
+              // 如果正在进行中文输入，不处理回车键
+              if (isComposing) return
+
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault()
                 handleSubmit(e)
               }
             }}
-            placeholder="输入消息... (按 Shift + Enter 换行)"
+            // 添加中文输入法事件处理
+            onCompositionStart={() => setIsComposing(true)}
+            onCompositionEnd={() => setIsComposing(false)}
+            placeholder="输入消息... (按 Shift + Enter 或 Return 换行)"
             className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px] resize-none"
             disabled={isLoading}
           />
@@ -147,7 +155,7 @@ export function ChatInterface() {
             }`}
             disabled={isLoading}
           >
-            {isLoading ? 'Sending...' : 'Send'}
+            {isLoading ? '发送中...' : '发送'}
           </button>
         </div>
       </form>
