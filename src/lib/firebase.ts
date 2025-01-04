@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
@@ -11,6 +11,16 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
-const app = initializeApp(firebaseConfig);
+// 初始化 Firebase
+let app;
+if (!getApps().length) {
+  try {
+    app = initializeApp(firebaseConfig);
+  } catch (error) {
+    console.error('Firebase initialization error:', error);
+  }
+}
+
+// 导出 auth 和 db 实例
 export const auth = getAuth(app);
 export const db = getFirestore(app); 
