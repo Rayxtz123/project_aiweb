@@ -22,6 +22,10 @@ export function ChatInterface() {
   const [isComposing, setIsComposing] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
+  // 添加一个状态来跟踪最后一次按键时间
+  const lastKeyDownTime = useRef(0)
+  const lastKeyUpTime = useRef(0)
+
   /**
    * 处理消息提交
    * @param e - 表单提交事件
@@ -74,31 +78,37 @@ export function ChatInterface() {
     }
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    // 检查是否是移动设备
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    lastKeyDownTime.current = Date.now()
     
-    // 如果是移动设备且正在输入中文，不处理键盘事件
-    if (isMobile && isComposing) {
-      return
+    // 如果是移动设备的换行键，不做任何处理
+    if (e.key === 'Enter' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      e.stopPropagation() // 阻止事件冒泡
+      return // 直接返回，不做任何处理
     }
 
-    // 处理回车键
+    // 桌面端的 Shift + Enter 换行处理
     if (e.key === 'Enter') {
-      // 如果按下了 Shift 键，允许换行
-      if (e.shiftKey) {
-        return
+      if (!e.shiftKey) {
+        e.preventDefault()
+        handleSubmit(e)
       }
-      
-      // 否则阻止默认行为并提交表单
-      e.preventDefault()
-      handleSubmit(e)
     }
   }
 
-  // 处理输入变化
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(e.target.value)
+  const handleKeyUp = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    lastKeyUpTime.current = Date.now()
+    
+    // 检测是否是移动端的快速按键（通常是输入法的换行键）
+    const isQuickPress = lastKeyUpTime.current - lastKeyDownTime.current < 50
+    
+    // 如果是移动端的快速按键，且内容以换行符结尾，移除换行符
+    if (isQuickPress && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      const value = textareaRef.current?.value || ''
+      if (value.endsWith('\n')) {
+        setInput(value.slice(0, -1))
+      }
+    }
   }
 
   return (
@@ -159,21 +169,10 @@ export function ChatInterface() {
           <textarea
             ref={textareaRef}
             value={input}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyPress}
-            onCompositionStart={() => setIsComposing(true)}
-            onCompositionEnd={() => {
-              setIsComposing(false)
-              // 在 iOS 设备上，需要额外处理输入法的换行键
-              if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-                const value = textareaRef.current?.value || ''
-                if (value.endsWith('\n')) {
-                  setInput(value.slice(0, -1))
-                  handleSubmit(new Event('submit') as any)
-                }
-              }
-            }}
-            placeholder="输入消息... (按住 Shift 键的同时按回车键换行)"
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onKeyUp={handleKeyUp}
+            placeholder="输入消息... (移动端双击换行键换行，桌面端按 Shift + Enter 换行)"
             className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px] resize-none"
             disabled={isLoading}
           />
