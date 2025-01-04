@@ -13,7 +13,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "RayX - AI 助手",
+  title: {
+    template: '%s | RayX',
+    default: 'RayX - 探索 AI 的无限可能'
+  },
   description: "探索 AI 的无限可能，让科技改变生活",
   icons: {
     icon: '/favicon.ico',
