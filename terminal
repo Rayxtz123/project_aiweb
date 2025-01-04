@@ -1,0 +1,27 @@
+npx create-next-app@latest ai-chat --typescript --tailwind --app --src-dir --import-alias "@/*"
+cd ai-chat
+npm install @headlessui/react @heroicons/react zustand openai react-markdown rehype-raw rehype-sanitize 
+touch .env.local 
+npm run dev 
+
+# 停止开发服务器
+ctrl + c
+
+# 删除 node_modules 和 package-lock.json
+rm -rf node_modules package-lock.json
+
+# 重新安装所有依赖
+npm install
+
+# 确保 zustand 被正确安装
+npm install zustand --save
+
+# 清除 Next.js 缓存
+rm -rf .next
+
+# 重新启动开发服务器
+npm run dev 
+
+ls node_modules/zustand 
+
+npm install -D @tailwindcss/typography 
